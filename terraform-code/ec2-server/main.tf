@@ -1,12 +1,19 @@
 # create infrastruture using terraform 
 resource "aws_key_pair" "my-key" {
-  key_name= "ott-deployment"
+  key_name   = var.aws_key_name
   public_key = file("/home/sumeru-chougule/AWS-DevOps/OTT-platform-deployment/terraform-code/ec2-server/ott-deployment.pub")
 }
 # step 1 : create security group 
+resource "aws_default_vpc" "default" {
+
+  tags = {
+    name = "default vpc"
+  }
+}
+
 
 resource "aws_security_group" "my-sg" {
-  name        = "jenkins-server-sg"
+  name        = "ott-deployment-sg"
   description = "this is jenkins server sg"
 
   #define inbound and outbound rule
@@ -127,3 +134,17 @@ resource "aws_security_group" "my-sg" {
   }
 }
 
+resource "aws_instance" "my-ec2" {
+  ami                    = var.ami
+  instance_type          = var.instance_type
+  vpc_security_group_ids = [aws_security_group.my-sg.id]
+
+  root_block_device {
+    volume_type = "gp3"
+    volume_size = var.volume_size
+  }
+
+  tags = {
+    name = "ott-deployment"
+  }
+}
